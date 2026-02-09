@@ -55,4 +55,4 @@ ENV IOPAINT_port=8080
 ENV IOPAINT_host=0.0.0.0
 
 # Entrypoint
-CMD ["iopaint", "start", "--model", "lama", "--device", "cuda", "--port", "8080", "--host", "0.0.0.0"]
+CMD iopaint start --model ${IOPAINT_model} --device ${IOPAINT_device} --port ${IOPAINT_port} --host ${IOPAINT_host}
