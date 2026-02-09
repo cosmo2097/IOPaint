@@ -2,11 +2,9 @@ version: '3.8'
 
 services:
   iopaint:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.source
-    image: iopaint:local
+    image: ghcr.io/cosmo2097/iopaint:main
     container_name: iopaint
+    restart: unless-stopped
     ports:
       - "8080:8080"
     environment:
