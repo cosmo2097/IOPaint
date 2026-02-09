@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  iopaint:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.source
+    image: iopaint:local
+    container_name: iopaint
+    ports:
+      - "8080:8080"
+    environment:
+      # Select model: lama, mat, fcf, cv2, manga, gligen, sd1.5, sd2, sd_xl, etc.
+      - IOPAINT_model=lama
+      - IOPAINT_device=cuda
+      - IOPAINT_port=8080
+      - IOPAINT_host=0.0.0.0
+      # Persist models to mapped volume
+      - XDG_CACHE_HOME=/root/.cache
+    volumes:
+      # Persist downloaded models
+      - ./data/models:/root/.cache
+      # Map input and output directories
+      - ./data/input:/app/input
+      - ./data/output:/app/output
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
