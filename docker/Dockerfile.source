@@ -1,4 +1,14 @@
 # Syntax=docker/dockerfile:1
+
+# Stage 1: Build Frontend
+FROM node:20-alpine AS frontend-builder
+WORKDIR /app
+COPY web_app/package.json web_app/package-lock.json ./
+RUN npm ci
+COPY web_app/ .
+RUN npm run build
+
+# Stage 2: Build Backend
 FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
 
 # Install system dependencies
@@ -14,17 +24,23 @@ WORKDIR /app
 # Upgrade pip
 RUN pip3 install --no-cache-dir --upgrade pip
 
-# Install PyTorch and XFormers (pre-built wheels for CUDA)
-# Note: Adjust cuda version in URL if necessary to match base image
+# Install PyTorch and XFormers
 RUN pip3 install --no-cache-dir torch==2.1.2 torchvision==0.16.2 --index-url https://download.pytorch.org/whl/cu118
 RUN pip3 install --no-cache-dir xformers==0.0.23.post1 --index-url https://download.pytorch.org/whl/cu118
 
-# Copy requirements first to leverage cache
+# Copy requirements first
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Copy source code
 COPY . .
+
+# Copy built frontend assets from Stage 1 to the python package directory
+# setup.py expects files in iopaint/web_app
+COPY --from=frontend-builder /app/dist/ ./iopaint/web_app/
+
+# Remove existing web_app source link/dir if exists to avoid confusion (optional)
+# But we need to ensure iopaint/web_app is a real directory with build artifacts
 
 # Install IOPaint from source
 RUN pip3 install --no-cache-dir .
